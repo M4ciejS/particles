@@ -1,0 +1,169 @@
+<html>
+    <head>
+        <title>Particles</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style> 
+            div.canva{
+                border: 1px solid black;
+                float:left;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="canva">
+            <canvas id="canvas2" width="600" height="400">
+                Niemasz canvasuw cieniasie!
+            </canvas>
+        </div>
+        <script type="text/javascript">
+            var canvas;
+            var ctx;
+            var yn = 1;
+            var xn = -1;
+            var ANIMSPEED = 10;
+            var WIDTH = 600;
+            var HEIGHT = 400;
+            var PARTICLENO = 500;
+            var PARTICLETTL = 100;
+            var startx = WIDTH / 2;//x position of the particle generator
+            var starty = HEIGHT - 10;//y position of the particle generator
+            var canvasData;
+            var partarray = new Array();
+            function init() {
+                canvas = document.getElementById("canvas2");
+                ctx = canvas.getContext("2d");
+                canvasData = ctx.getImageData(0, 0, WIDTH, HEIGHT);
+                //createparticles();
+                return setInterval(draw, ANIMSPEED);
+            }
+            function drawPixel(x, y, r, g, b, a) {
+                var index = (x + y * WIDTH) * 4;
+                canvasData.data[index + 0] = r;
+                canvasData.data[index + 1] = g;
+                canvasData.data[index + 2] = b;
+                canvasData.data[index + 3] = a;
+            }
+            function createparticles() {
+                for (var i = 0; i < PARTICLENO; i++) {
+                    partarray.push(new particle(WIDTH / 2, HEIGHT / 2, 0, -1, "#FFFFFF", PARTICLETTL));
+                }
+            }
+            function addparticle(x, y, dx, dy, color, PARTICLETTL) {
+                partarray.push(new particle(x, y, dx, dy, color, PARTICLETTL));
+            }
+            function rect(x, y, w, h) {
+                ctx.beginPath();
+                ctx.rect(x, y, w, h);
+                ctx.closePath();
+                ctx.fill();
+            }
+            function circle(x, y, r) {
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2, true);
+                ctx.fill();
+            }
+            function clear() {
+                //ctx.clearRect(0, 0, WIDTH, HEIGHT);
+                ctx.fillStyle = "#EEEEFF";
+                ctx.fillRect(0, 0, WIDTH, HEIGHT);
+            }
+            function shadeColor(color, shade) {
+                var colorInt = parseInt(color.substring(1), 16);
+
+                var R = (colorInt & 0xFF0000) >> 16;
+                var G = (colorInt & 0x00FF00) >> 8;
+                var B = (colorInt & 0x0000FF) >> 0;
+
+                R = R + Math.floor((shade / 255) * R);
+                G = G + Math.floor((shade / 255) * G);
+                B = B + Math.floor((shade / 255) * B);
+
+                var newColorInt = (R << 16) + (G << 8) + (B);
+                var newColorStr = "#" + newColorInt.toString(16);
+
+                return newColorStr;
+            }
+            function rnd(from, to)
+            {
+                return Math.floor(Math.random() * (to - from + 1) + from);
+            }
+            function particle(x, y, dx, dy, color, ttl) {
+                this.x = x;//x position
+                this.y = y;//y position
+                this.dx = dx;//movement direction x
+                this.dy = y;//movement direction y
+                this.color = color;
+                this.ttl = ttl;//time to live
+            }
+            function moveparticles() {
+                for (var i = 0; i <= partarray.length - 1; i++) {
+                    // drawPixel(Math.floor(Math.random()*WIDTH)+1, Math.floor(Math.random()*HEIGHT)+1, Math.floor(Math.random()*255)+1, Math.floor(Math.random()*255)+1, Math.floor(Math.random()*255)+1, 255);
+                    if (partarray[i].ttl == 0) {
+                        partarray.splice(i, 1);
+                    } else {
+                        var tmpdx = rnd(-3, 3);
+                        var tmpdy = rnd(1, 3);
+                        if (partarray[i].ttl <= (PARTICLETTL * 0.05)) {
+                            if (partarray[i].x <= startx) {
+                                var tmpdx = rnd(1, 6);
+                            } else {
+                                var tmpdx = rnd(-6, -1);
+                            }
+                        }
+                        partarray[i].x += tmpdx;
+                        partarray[i].y -= tmpdy;
+                        partarray[i].color = shadeColor(partarray[i].color, -1);
+                        partarray[i].ttl--;
+                    }
+                }
+            }
+            function addparticles(n, startx, starty) {
+                for (var i = 0; i < n; i++) {
+                    var tmpttl = rnd(PARTICLETTL - 20, PARTICLETTL + 20)
+                    var tmpcolor;
+                    if (i % 2 == 0) {
+                        tmpcolor = "#FF0000";
+                    } else {
+                        tmpcolor = "#FFCC33";
+                    }
+                    partarray.push(new particle(startx, starty, 0, -1, tmpcolor, tmpttl));
+                }
+            }
+            function dp() {
+                for (var i = 0; i < partarray.length - 1; i++) {
+                    ctx.fillStyle = partarray[i].color;
+                    //rect(partarray[i].x,partarray[i].y,2,2);
+                    circle(partarray[i].x, partarray[i].y, 2);
+                }
+            }
+            function movesrc() {
+                if (startx < WIDTH) {
+                    if (startx <= 0)
+                        yn = 1;
+                    startx += yn;
+                } else {
+                    yn = -1;
+                    startx += yn;
+                }
+                if (starty > HEIGHT - 100) {
+                    if (starty > HEIGHT - 10)
+                        xn = -1;
+                    starty += xn;
+                } else {
+                    xn = 1;
+                    starty += xn
+                }
+            }
+            function draw() {
+                clear();
+                addparticles(50, startx, starty);
+                dp();
+                moveparticles();
+            }
+            document.addEventListener('DOMContentLoaded', function () {
+                init();
+            });
+        </script>
+    </body>
+</html>
